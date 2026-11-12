@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vision :: Version Control</title>
+  <style>
+    :root {
+      --bg-canvas: #FDFBF7;
+      --bg-card: #FFFFFF;
+      --border-color: #000000;
+      --border-width: 2px;
+      --shadow-card: 4px 4px 0px #000000;
+      --shadow-btn: 3px 3px 0px #000000;
+      --shadow-sm: 2px 2px 0px #000000;
+      --radius-card: 12px;
+      --radius-inner: 8px;
+      --radius-pill: 9999px;
+
+      /* Theme 1: Yellow / Purple (Default) */
+      --accent-primary: #FEF08A;
+      --accent-secondary: #E9D5FF;
+      --accent-green: #BBF7D0;
+      --accent-red: #FECDD3;
+      --accent-blue: #BAE6FD;
+      --accent-orange: #FED7AA;
+      --accent-dark: #111827;
+      --accent-editor-bg: #FFFFFF;
+      --text-main: #111827;
+      --text-muted: #6B7280;
+    }
+
+    [data-theme="green-yellow"] {
+      --accent-primary: #BBF7D0;
+      --accent-secondary: #FEF08A;
+      --accent-green: #A7F3D0;
+      --accent-red: #FECDD3;
+      --accent-blue: #BAE6FD;
+      --accent-orange: #DDD6FE;
+    }
+
+    [data-theme="blue-pink"] {
+      --accent-primary: #BAE6FD;
+      --accent-secondary: #FECDD3;
+      --accent-green: #BBF7D0;
+      --accent-red: #F472B6;
+      --accent-blue: #C084FC;
+      --accent-orange: #FEF08A;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      padding: 12px;
+      box-sizing: border-box;
+      overflow: hidden;
+      background-color: var(--bg-canvas);
+      background-image: radial-gradient(#d1cfc7 1.2px, transparent 1.2px);
+      background-size: 18px 18px;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      user-select: none;
+    }
+
+    /* Common Card Styles */
+    .card {
+      background: var(--bg-card);
+      border: var(--border-width) solid var(--border-color);
+      box-shadow: var(--shadow-card);
+      border-radius: var(--radius-card);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 0;
+      height: 100%;
+    }
+
+    .card-header {
+      padding: 8px 12px;
+      border-bottom: var(--border-width) solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #FFFFFF;
+      flex-shrink: 0;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-pill {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-pill);
+      box-shadow: 1px 1px 0px #000;
+      letter-spacing: 0.3px;
+    }
+
+    /* Top Header Bar */
+    .header-bar {
+      flex-shrink: 0;
+      height: 48px;
+      background: var(--bg-card);
+      border: var(--border-width) solid var(--border-color);
+      box-shadow: var(--shadow-card);
+      border-radius: var(--radius-card);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--accent-primary);
+      border: 2px solid var(--border-color);
+      border-radius: 6px;
+      box-shadow: 2px 2px 0px #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 14px;
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: -0.3px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .theme-group {
+      display: flex;
+      align-items: center;
+      background: #F3F4F6;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-pill);
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .theme-btn {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .theme-btn.active {
+      background: #FFFFFF;
+      border: 1.5px solid var(--border-color);
+      box-shadow: 1px 1px 0px #000;
+    }
+
+    .demo-btn {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 5px 12px;
+      background: var(--accent-blue);
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: transform 0.1s;
+    }
+    .demo-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0px 0px 0px #000;
+    }
+
+    /* Main Dashboard Grid */
+    .dashboard-grid {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 1.05fr 1.25fr 1fr;
+      gap: 14px;
+      overflow: hidden;
+    }
+
+    .col-left {
+      display: grid;
+      grid-template-rows: 1.55fr 0.9fr;
+      gap: 14px;
+      min-height: 0;
+      height: 100%;
+    }
+
+    .col-center {
+      display: grid;
+      grid-template-rows: 1.4fr 1fr;
+      gap: 14px;
+      min-height: 0;
+      height: 100%;
+    }
+
+    .col-right {
+      display: grid;
+      grid-template-rows: 1.15fr 1fr 1.25fr;
+      gap: 14px;
+      min-height: 0;
+      height: 100%;
+    }
+
+    /* Left Column Components */
+    .editor-body {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .status-banner {
+      padding: 6px 10px;
+      background: var(--accent-green);
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-inner);
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .status-banner.error {
+      background: var(--accent-red);
+      color: #991B1B;
+    }
+
+    .code-editor-box {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-inner);
+      background: var(--accent-editor-bg);
+      overflow: hidden;
+    }
+
+    .line-numbers {
+      width: 32px;
+      background: #F9FAFB;
+      border-right: 1.5px solid #E5E7EB;
+      padding: 8px 0;
+      text-align: right;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+      color: #9CA3AF;
+      line-height: 19px;
+      user-select: none;
+      padding-right: 6px;
+    }
+
+    .code-textarea {
+      flex: 1;
+      height: 100%;
+      border: none;
+      outline: none;
+      resize: none;
+      padding: 8px 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11.5px;
+      line-height: 19px;
+      background: transparent;
+      color: #1F2937;
+      white-space: pre;
+      overflow-y: auto;
+      overflow-x: auto;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .neo-btn {
+      padding: 7px 4px;
+      font-size: 11px;
+      font-weight: 800;
+      border: 1.5px solid var(--border-color);
+      border-radius: 6px;
+      box-shadow: 2px 2px 0px #000;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.1s;
+      white-space: nowrap;
+    }
+    .neo-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0px 0px 0px #000;
+    }
+    .btn-yellow { background: var(--accent-primary); }
+    .btn-red    { background: var(--accent-red); }
+    .btn-green  { background: var(--accent-green); }
+    .btn-purple { background: var(--accent-secondary); }
+    .btn-blue   { background: var(--accent-blue); }
+    .btn-gray   { background: #F3F4F6; }
+
+    .presets-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+      color: var(--text-muted);
+    }
+    .preset-pill {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      background: #F3F4F6;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-pill);
+      box-shadow: 1px 1px 0px #000;
+      cursor: pointer;
+      color: var(--text-main);
+      transition: all 0.1s;
+    }
+    .preset-pill:hover {
+      background: #E5E7EB;
+    }
+    .preset-pill:active {
+      transform: translate(1px, 1px);
+      box-shadow: 0px 0px 0px #000;
+    }
+
+    /* Diff Viewer */
+    .diff-body {
+      padding: 10px;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .diff-content {
+      flex: 1;
+      min-height: 0;
+      background: #111827;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-inner);
+      padding: 8px 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+      font-size: 11px;
+      line-height: 18px;
+      color: #9CA3AF;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    .diff-line-add { color: #4ADE80; background: rgba(74, 222, 128, 0.1); display: block; }
+    .diff-line-rem { color: #F87171; background: rgba(248, 113, 113, 0.1); display: block; }
+
+    /* Center Column: Console */
+    .console-header-dots {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.4);
+    }
+    .dot-red { background: #FF5F56; }
+    .dot-yellow { background: #FFBD2E; }
+    .dot-green { background: #27C93F; }
+
+    .console-body {
+      padding: 8px;
+      background: #111827;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .terminal-logs {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+      font-size: 11px;
+      line-height: 17px;
+      color: #D1D5DB;
+      padding: 4px;
+    }
+    .terminal-logs .cyan { color: #38BDF8; font-weight: 700; }
+    .terminal-logs .green { color: #4ADE80; }
+    .terminal-logs .yellow { color: #FACC15; }
+    .terminal-logs .magenta { color: #C084FC; }
+    .terminal-logs .dim { color: #6B7280; }
+
+    .terminal-input-bar {
+      display: flex;
+      align-items: center;
+      background: #1F2937;
+      border: 1.5px solid #374151;
+      border-radius: 6px;
+      padding: 4px 8px;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .terminal-prompt-label {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+      font-size: 11px;
+      font-weight: 800;
+      color: #38BDF8;
+      white-space: nowrap;
+    }
+    .terminal-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #F9FAFB;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+      font-size: 11px;
+    }
+
+    /* Commit History */
+    .commit-list {
+      padding: 8px;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .commit-item {
+      background: #FFFFFF;
+      border: 1.5px solid var(--border-color);
+      box-shadow: 2px 2px 0px #000;
+      border-radius: 8px;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .commit-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .commit-hash-pill {
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      font-size: 10px;
+      font-weight: 800;
+      background: var(--accent-primary);
+      padding: 2px 6px;
+      border: 1px solid #000;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .commit-details {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .commit-msg {
+      font-size: 11.5px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .commit-meta {
+      font-size: 9.5px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 6px;
+    }
+
+    .checkout-btn {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 8px;
+      background: var(--accent-secondary);
+      border: 1.5px solid #000;
+      border-radius: 5px;
+      box-shadow: 1px 1px 0px #000;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .checkout-btn:active {
+      transform: translate(1px, 1px);
+      box-shadow: 0px 0px 0px #000;
+    }
+
+    /* Right Column: Stack, Queue, HashTable */
+    .dual-stack-container {
+      padding: 8px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .stack-box {
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-inner);
+      background: #F9FAFB;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .stack-header {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 4px 6px;
+      background: #F3F4F6;
+      border-bottom: 1px solid #E5E7EB;
+      text-align: center;
+    }
+    .stack-items {
+      padding: 6px;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .stack-node {
+      font-family: ui-monospace, monospace;
+      font-size: 9.5px;
+      background: #FFFFFF;
+      border: 1px solid #000;
+      box-shadow: 1px 1px 0px #000;
+      border-radius: 4px;
+      padding: 3px 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Queue Container */
+    .queue-container {
+      padding: 8px;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow-y: auto;
+    }
+    .queue-node-card {
+      background: var(--accent-primary);
+      border: 1.5px solid var(--border-color);
+      box-shadow: 2px 2px 0px #000;
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 10.5px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .queue-node-top {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 800;
+      font-size: 10px;
+    }
+
+    /* Hash Table */
+    .hashtable-container {
+      padding: 6px 8px;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .hashtable-formula {
+      font-size: 9.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      line-height: 12px;
+    }
+    .buckets-list {
+      flex: 1;
+      min-height: 0;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-inner);
+      background: #F9FAFB;
+      padding: 4px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .bucket-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 9.5px;
+      font-family: ui-monospace, monospace;
+      padding: 2px 4px;
+      background: #FFFFFF;
+      border: 1px solid #E5E7EB;
+      border-radius: 4px;
+    }
+    .bucket-label {
+      font-weight: 800;
+      color: #6B7280;
+      width: 58px;
+      flex-shrink: 0;
+    }
+    .bucket-chain {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      overflow-x: auto;
+      flex: 1;
+    }
+    .chain-node {
+      background: var(--accent-secondary);
+      border: 1px solid #000;
+      border-radius: 3px;
+      padding: 1px 4px;
+      white-space: nowrap;
+    }
+
+    .telemetry-strip {
+      padding: 3px 6px;
+      background: #F3F4F6;
+      border: 1px solid #E5E7EB;
+      border-radius: 4px;
+      font-size: 9.5px;
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body data-theme="yellow-purple">
+
+  <!-- TOP HEADER BAR -->
+  <header class="header-bar">
+    <div class="header-left">
+      <div class="brand-icon">⬡</div>
+      <div class="brand-title">Vision :: Version Control</div>
+      <span class="badge-pill" style="background: var(--accent-primary);">Custom DSA Engine • Active / Ready</span>
+    </div>
+    <div class="header-right">
+      <div class="theme-group">
+        <button class="theme-btn active" onclick="setTheme('yellow-purple', this)">Yellow / Purple</button>
+        <button class="theme-btn" onclick="setTheme('green-yellow', this)">Green / Yellow</button>
+        <button class="theme-btn" onclick="setTheme('blue-pink', this)">Blue / Pink</button>
+      </div>
+      <button class="demo-btn" onclick="triggerDemo()">
+        <span>▶</span> Run Demo / Walkthrough
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN 3-COLUMN DASHBOARD GRID -->
+  <main class="dashboard-grid">
+
+    <!-- LEFT COLUMN -->
+    <section class="col-left">
+      <!-- 1. Active Working Buffer -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>✏️</span> Active Working Buffer
+          </div>
+          <span class="badge-pill" style="background: var(--accent-secondary);">Editor</span>
+        </div>
+        <div class="editor-body">
+          <div id="statusBanner" class="status-banner">
+            <span>✓</span> All (), {}, [] delimiters are balanced
+          </div>
+          <div class="code-editor-box">
+            <div id="lineNumbers" class="line-numbers">1<br>2<br>3<br>4</div>
+            <textarea id="codeEditor" class="code-textarea" spellcheck="false" placeholder="Write code or text here...">def calculate_metrics():
+    dataset = [10, 20, 30]
+    return sum(dataset)</textarea>
+          </div>
+          <div class="button-grid">
+            <button class="neo-btn btn-yellow" onclick="actionWriteLine()">+ Write Line</button>
+            <button class="neo-btn btn-red" onclick="actionBadSyntax()">Bad Syntax</button>
+            <button class="neo-btn btn-blue" onclick="actionUndo()">⌫ Undo</button>
+            <button class="neo-btn btn-blue" onclick="actionRedo()">↺ Redo</button>
+            <button class="neo-btn btn-green" onclick="actionStage()">⬆ Stage</button>
+            <button class="neo-btn btn-purple" onclick="actionCommit()">✔ Commit</button>
+            <button class="neo-btn btn-gray" onclick="actionClear()">✕ Clear</button>
+            <button class="neo-btn btn-gray" onclick="actionReset()">⟳ Reset</button>
+          </div>
+          <div class="presets-row">
+            <span>Presets:</span>
+            <span class="preset-pill" onclick="applyPreset('py')">Python Code</span>
+            <span class="preset-pill" onclick="applyPreset('quotes')">Quotes & Comments</span>
+            <span class="preset-pill" onclick="applyPreset('dedup')">Test Dedup</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Diff Against HEAD -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>⟷</span> Diff Against HEAD
+          </div>
+          <span class="badge-pill" style="background: var(--accent-primary);">Live Inspector</span>
+        </div>
+        <div class="diff-body">
+          <div id="diffContent" class="diff-content">Working buffer matches HEAD commit snapshot</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CENTER COLUMN -->
+    <section class="col-center">
+      <!-- 1. Interactive Command Console -->
+      <div class="card" style="background: #111827; border-color: #000;">
+        <div class="card-header" style="background: #1F2937; border-color: #000;">
+          <div class="console-header-dots">
+            <div class="dot dot-red"></div>
+            <div class="dot dot-yellow"></div>
+            <div class="dot dot-green"></div>
+          </div>
+          <span style="font-size: 11px; font-weight: 800; color: #9CA3AF; font-family: ui-monospace, monospace;">vision/main</span>
+        </div>
+        <div class="console-body">
+          <div id="terminalLogs" class="terminal-logs">
+            <div class="cyan"># Vision DSA Engine Initialized.</div>
+            <div class="dim"># Linux/macOS active. Pure custom Stack, Queue & HashTable.</div>
+            <div class="dim">Type commands below or use the added buttons!</div>
+            <div class="yellow">Available: write, undo, redo, stage, commit, log, checkout, diff, reset, status.</div>
+            <br>
+          </div>
+          <div class="terminal-input-bar">
+            <span class="terminal-prompt-label">vision/main &gt; $</span>
+            <input type="text" id="terminalInput" class="terminal-input" placeholder="type command... (Press Enter)" autocomplete="off">
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Commit History -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🕒</span> Commit History (HEAD &rarr; ROOT)
+          </div>
+          <span id="headBadge" class="badge-pill" style="background: var(--accent-secondary);">HEAD: ROOT</span>
+        </div>
+        <div id="commitList" class="commit-list">
+          <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 20px;">
+            No commits recorded yet. Click 'Stage' and then 'Commit'.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN (NO SYLLABUS UNIT LABELS) -->
+    <section class="col-right">
+      <!-- 1. Dual-Stack Undo/Redo -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>⇅</span> Dual-Stack Undo/Redo
+          </div>
+          <span class="badge-pill" style="background: var(--accent-secondary);">LIFO</span>
+        </div>
+        <div class="dual-stack-container">
+          <div class="stack-box">
+            <div class="stack-header">Undo Stack</div>
+            <div id="undoStackList" class="stack-items">
+              <span style="font-size: 9px; color: #9CA3AF; text-align: center;">[Empty]</span>
+            </div>
+          </div>
+          <div class="stack-box">
+            <div class="stack-header">Redo Stack</div>
+            <div id="redoStackList" class="stack-items">
+              <span style="font-size: 9px; color: #9CA3AF; text-align: center;">[Empty]</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Staging Area FIFO -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>⎘</span> Staging Area FIFO
+          </div>
+          <span class="badge-pill" style="background: var(--accent-secondary);">FIFO Queue</span>
+        </div>
+        <div id="stagingQueueList" class="queue-container">
+          <div style="font-size: 10px; color: #9CA3AF; text-align: center; padding: 12px;">
+            Queue is empty. Click 'Stage' to enqueue active buffer.
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Hash Table (DJB2) -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>#️⃣</span> Hash Table (DJB2)
+          </div>
+          <span id="dedupBadge" class="badge-pill" style="background: var(--accent-primary);">0 Deduplications</span>
+        </div>
+        <div class="hashtable-container">
+          <div class="hashtable-formula">
+            Separate Chaining with rolling polynomial hash: <i>H = &sum;(c<sub>i</sub> &times; 137<sup>i</sup>) mod M</i>
+          </div>
+          <div id="bucketsList" class="buckets-list">
+            <!-- Buckets rendered dynamically -->
+          </div>
+          <div id="telemetryStrip" class="telemetry-strip">
+            <span>Cap: 16 | Nodes: 0</span>
+            <span>Collisions: 0</span>
+            <span>Saved: 0 B</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // =========================================================================
+    // STATE & PYWEBVIEW BRIDGE
+    // =========================================================================
+    let localEngine = {
+      buffer: `def calculate_metrics():\n    dataset = [10, 20, 30]\n    return sum(dataset)`,
+      undoStack: [],
+      redoStack: [],
+      stagingQueue: [],
+      commits: [],
+      head: null,
+      casBlobs: [],
+      telemetry: {
+        totalSnapshots: 0,
+        uniqueBlobs: 0,
+        dedupHits: 0,
+        bytesSaved: 0,
+        capacity: 16,
+        collisions: 0,
+        loadFactor: 0
+      }
+    };
+
+    const hasPywebview = () => window.pywebview && window.pywebview.api;
+
+    // Theme Switcher
+    function setTheme(themeName, btn) {
+      document.body.setAttribute('data-theme', themeName);
+      document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    // Line numbers synchronizer
+    const codeEditor = document.getElementById('codeEditor');
+    const lineNumbers = document.getElementById('lineNumbers');
+
+    function updateLineNumbers() {
+      const lines = codeEditor.value.split('\n').length;
+      let html = '';
+      for (let i = 1; i <= lines; i++) {
+        html += i + '<br>';
+      }
+      lineNumbers.innerHTML = html;
+    }
+
+    codeEditor.addEventListener('input', () => {
+      updateLineNumbers();
+      validateDelimitersClient(codeEditor.value);
+      if (hasPywebview()) {
+        window.pywebview.api.update_buffer(codeEditor.value).then(renderUI);
+      } else {
+        updateDiffMock();
+      }
+    });
+
+    // Delimiter validator (client-side fast preview)
+    function validateDelimitersClient(text) {
+      const stack = [];
+      const banner = document.getElementById('statusBanner');
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (c === '(' || c === '[' || c === '{') stack.push(c);
+        else if (c === ')' || c === ']' || c === '}') {
+          if (stack.length === 0) {
+            banner.className = 'status-banner error';
+            banner.innerHTML = `<span>✗</span> Extraneous closing delimiter '${c}'`;
+            return false;
+          }
+          const open = stack.pop();
+          if ((c === ')' && open !== '(') || (c === ']' && open !== '[') || (c === '}' && open !== '{')) {
+            banner.className = 'status-banner error';
+            banner.innerHTML = `<span>✗</span> Mismatched closing '${c}' for '${open}'`;
+            return false;
+          }
+        }
+      }
+      if (stack.length > 0) {
+        banner.className = 'status-banner error';
+        banner.innerHTML = `<span>✗</span> Unclosed delimiter '${stack[stack.length - 1]}'`;
+        return false;
+      }
+      banner.className = 'status-banner';
+      banner.innerHTML = `<span>✓</span> All (), {}, [] delimiters are balanced`;
+      return true;
+    }
+
+    // =========================================================================
+    // UI RENDERING
+    // =========================================================================
+    function renderUI(state) {
+      if (!state) return;
+      localEngine = state;
+
+      // Editor
+      if (document.activeElement !== codeEditor) {
+        codeEditor.value = state.buffer;
+        updateLineNumbers();
+      }
+      validateDelimitersClient(codeEditor.value);
+
+      // Diff
+      document.getElementById('diffContent').innerHTML = formatDiff(state.diff || 'Working buffer matches HEAD commit snapshot');
+
+      // Head Badge
+      const headShort = state.head ? state.head.substring(0, 8) : 'ROOT';
+      document.getElementById('headBadge').innerText = `HEAD: ${headShort}`;
+
+      // Commit List
+      const commitList = document.getElementById('commitList');
+      if (!state.commits || state.commits.length === 0) {
+        commitList.innerHTML = `<div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 20px;">No commits recorded yet. Click 'Stage' and then 'Commit'.</div>`;
+      } else {
+        commitList.innerHTML = state.commits.slice().reverse().map(c => `
+          <div class="commit-item">
+            <div class="commit-left">
+              <span class="commit-hash-pill">${c.id.substring(0, 8)}</span>
+              <div class="commit-details">
+                <span class="commit-msg">${c.message}</span>
+                <span class="commit-meta">${c.author} • ${c.size}B ${c.is_dedup ? '• <b style="color:#16A34A;">DEDUP</b>' : ''}</span>
+              </div>
+            </div>
+            <button class="checkout-btn" onclick="actionCheckout('${c.id}')">Checkout</button>
+          </div>
+        `).join('');
+      }
+
+      // Dual Stack
+      const undoList = document.getElementById('undoStackList');
+      if (!state.undoStack || state.undoStack.length === 0) {
+        undoList.innerHTML = `<span style="font-size: 9px; color: #9CA3AF; text-align: center;">[Empty]</span>`;
+      } else {
+        undoList.innerHTML = state.undoStack.map(item => `
+          <div class="stack-node" title="${item.desc}">TX#${item.id} ${item.type}</div>
+        `).join('');
+      }
+
+      const redoList = document.getElementById('redoStackList');
+      if (!state.redoStack || state.redoStack.length === 0) {
+        redoList.innerHTML = `<span style="font-size: 9px; color: #9CA3AF; text-align: center;">[Empty]</span>`;
+      } else {
+        redoList.innerHTML = state.redoStack.map(item => `
+          <div class="stack-node" title="${item.desc}">TX#${item.id} ${item.type}</div>
+        `).join('');
+      }
+
+      // Staging Area FIFO
+      const queueList = document.getElementById('stagingQueueList');
+      if (!state.stagingQueue || state.stagingQueue.length === 0) {
+        queueList.innerHTML = `<div style="font-size: 10px; color: #9CA3AF; text-align: center; padding: 12px;">Queue is empty. Click 'Stage' to enqueue active buffer.</div>`;
+      } else {
+        queueList.innerHTML = state.stagingQueue.map((entry, idx) => `
+          <div class="queue-node-card">
+            <div class="queue-node-top">
+              <span>LSN #${entry.lsn} ${idx === 0 ? '(FRONT)' : ''}</span>
+              <span>${entry.size}B</span>
+            </div>
+            <div style="font-family: ui-monospace, monospace; font-size: 9px; color: #4B5563;">
+              Hash: ${entry.hash.substring(0, 16)}...
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Hash Table & Telemetry
+      const tele = state.telemetry || {};
+      document.getElementById('dedupBadge').innerText = `${tele.dedupHits || 0} Deduplications`;
+
+      document.getElementById('telemetryStrip').innerHTML = `
+        <span>Cap: ${tele.capacity || 16} | Nodes: ${tele.uniqueBlobs || 0}</span>
+        <span>Collisions: ${tele.collisions || 0}</span>
+        <span>Saved: ${tele.bytesSaved || 0} B</span>
+      `;
+
+      // Render buckets
+      const bucketsList = document.getElementById('bucketsList');
+      const buckets = state.buckets || [];
+      if (buckets.length === 0) {
+        let sampleHtml = '';
+        for (let b = 0; b < 6; b++) {
+          sampleHtml += `<div class="bucket-row"><span class="bucket-label">Bucket[${b}]</span><span style="color:#9CA3AF;">(empty)</span></div>`;
+        }
+        bucketsList.innerHTML = sampleHtml;
+      } else {
+        bucketsList.innerHTML = buckets.map(b => `
+          <div class="bucket-row">
+            <span class="bucket-label">Bucket[${b.index}]</span>
+            <div class="bucket-chain">
+              ${b.nodes.length === 0 ? '<span style="color:#9CA3AF;">(empty)</span>' : b.nodes.map(n => `<span class="chain-node">${n.hash.substring(0, 8)} (${n.refs} refs)</span>`).join('&rarr;')}
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function formatDiff(diffText) {
+      if (!diffText || diffText.includes('matches HEAD')) {
+        return `<span style="color: #9CA3AF;">Working buffer matches HEAD commit snapshot</span>`;
+      }
+      return diffText.split('\n').map(line => {
+        if (line.startsWith('+')) return `<span class="diff-line-add">${escapeHtml(line)}</span>`;
+        if (line.startsWith('-')) return `<span class="diff-line-rem">${escapeHtml(line)}</span>`;
+        return `<span>${escapeHtml(line)}</span>`;
+      }).join('\n');
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function logTerminal(text, cls = '') {
+      const logs = document.getElementById('terminalLogs');
+      const div = document.createElement('div');
+      if (cls) div.className = cls;
+      div.innerText = text;
+      logs.appendChild(div);
+      logs.scrollTop = logs.scrollHeight;
+    }
+
+    // =========================================================================
+    // BUTTON ACTIONS
+    // =========================================================================
+    function actionWriteLine() {
+      const appendCode = `\nprint("metric_score: ", calculate_metrics())`;
+      codeEditor.value += appendCode;
+      updateLineNumbers();
+      validateDelimitersClient(codeEditor.value);
+      if (hasPywebview()) {
+        window.pywebview.api.write(codeEditor.value, "Append metric print").then(renderUI);
+      } else {
+        mockCommitAction("write", "Appended metric print");
+      }
+      logTerminal(`$ write line -> +${appendCode.length} bytes`, 'cyan');
+    }
+
+    function actionBadSyntax() {
+      codeEditor.value += `\n    broken = [1, {2, (3)]}`;
+      updateLineNumbers();
+      validateDelimitersClient(codeEditor.value);
+      if (hasPywebview()) {
+        window.pywebview.api.write(codeEditor.value, "Introduce bad syntax").then(renderUI);
+      } else {
+        mockCommitAction("write", "Introduce bad syntax");
+      }
+      logTerminal(`$ write broken syntax -> Delimiter error triggered`, 'yellow');
+    }
+
+    function actionUndo() {
+      if (hasPywebview()) {
+        window.pywebview.api.undo().then(res => {
+          renderUI(res.state);
+          logTerminal(res.message, res.ok ? 'green' : 'yellow');
+        });
+      } else {
+        logTerminal(`$ undo (stack rollback)`, 'green');
+      }
+    }
+
+    function actionRedo() {
+      if (hasPywebview()) {
+        window.pywebview.api.redo().then(res => {
+          renderUI(res.state);
+          logTerminal(res.message, res.ok ? 'green' : 'yellow');
+        });
+      } else {
+        logTerminal(`$ redo (reapply action)`, 'green');
+      }
+    }
+
+    function actionStage() {
+      if (!validateDelimitersClient(codeEditor.value)) {
+        logTerminal(`[ERROR] Staging rejected: Unbalanced delimiters in active buffer!`, 'yellow');
+        return;
+      }
+      if (hasPywebview()) {
+        window.pywebview.api.stage().then(res => {
+          renderUI(res.state);
+          logTerminal(res.message, res.ok ? 'green' : 'yellow');
+        });
+      } else {
+        logTerminal(`$ stage -> Enqueued to WAL with LSN #101`, 'green');
+      }
+    }
+
+    function actionCommit() {
+      const msg = prompt("Enter commit message:", "feat: snapshot algorithm update");
+      if (!msg) return;
+      if (hasPywebview()) {
+        window.pywebview.api.commit(msg).then(res => {
+          renderUI(res.state);
+          logTerminal(res.message, res.ok ? 'magenta' : 'yellow');
+        });
+      } else {
+        logTerminal(`$ commit "${msg}" -> Snapshot stored in CAS`, 'magenta');
+      }
+    }
+
+    function actionClear() {
+      codeEditor.value = '';
+      updateLineNumbers();
+      validateDelimitersClient('');
+      if (hasPywebview()) {
+        window.pywebview.api.clear().then(renderUI);
+      }
+      logTerminal(`$ clear buffer`, 'yellow');
+    }
+
+    function actionReset() {
+      if (hasPywebview()) {
+        window.pywebview.api.reset().then(renderUI);
+      } else {
+        codeEditor.value = `def calculate_metrics():\n    dataset = [10, 20, 30]\n    return sum(dataset)`;
+        updateLineNumbers();
+        validateDelimitersClient(codeEditor.value);
+      }
+      logTerminal(`$ engine reset to fresh root`, 'cyan');
+    }
+
+    function actionCheckout(hash) {
+      if (hasPywebview()) {
+        window.pywebview.api.checkout(hash).then(res => {
+          renderUI(res.state);
+          logTerminal(res.message, res.ok ? 'cyan' : 'yellow');
+        });
+      } else {
+        logTerminal(`$ checkout ${hash.substring(0,8)}`, 'cyan');
+      }
+    }
+
+    function triggerDemo() {
+      logTerminal(`▶ Running Automated End-to-End Walkthrough...`, 'cyan');
+      if (hasPywebview()) {
+        window.pywebview.api.run_demo().then(res => {
+          renderUI(res.state);
+          logTerminal(`✓ Walkthrough complete: Edits, Syntax Rejection, Rollback & CAS Deduplication verified!`, 'green');
+        });
+      } else {
+        logTerminal(`Demo executed successfully.`, 'green');
+      }
+    }
+
+    // Presets
+    function applyPreset(type) {
+      let code = '';
+      if (type === 'py') {
+        code = `def fibonacci(n):\n    if n <= 1:\n        return [n]\n    return [fibonacci(n-1), fibonacci(n-2)]`;
+      } else if (type === 'quotes') {
+        code = `# Parser ignores nested quotes\nmessage = "Brackets in strings (like {this}) are safe!"\nprint(message)`;
+      } else if (type === 'dedup') {
+        code = `def calculate_metrics():\n    dataset = [10, 20, 30]\n    return sum(dataset)`;
+      }
+      codeEditor.value = code;
+      updateLineNumbers();
+      validateDelimitersClient(code);
+      if (hasPywebview()) {
+        window.pywebview.api.write(code, `Apply preset ${type}`).then(renderUI);
+      }
+      logTerminal(`Applied preset: ${type}`, 'cyan');
+    }
+
+    // Terminal Input Bar Handler
+    const termInput = document.getElementById('terminalInput');
+    termInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const cmd = termInput.value.trim();
+        if (!cmd) return;
+        termInput.value = '';
+        logTerminal(`$ ${cmd}`);
+
+        if (hasPywebview()) {
+          window.pywebview.api.run_cli_command(cmd).then(res => {
+            if (res.output) logTerminal(res.output, res.ok ? 'dim' : 'yellow');
+            renderUI(res.state);
+          });
+        } else {
+          // fallback client execution
+          if (cmd === 'undo') actionUndo();
+          else if (cmd === 'redo') actionRedo();
+          else if (cmd === 'stage') actionStage();
+          else if (cmd.startsWith('commit')) actionCommit();
+          else if (cmd === 'clear') actionClear();
+          else if (cmd === 'reset') actionReset();
+          else logTerminal(`Executed: ${cmd}`, 'dim');
+        }
+      }
+    });
+
+    // Initial setup
+    updateLineNumbers();
+    validateDelimitersClient(codeEditor.value);
+
+    window.addEventListener('pywebviewready', () => {
+      if (window.pywebview && window.pywebview.api) {
+        window.pywebview.api.get_state().then(renderUI);
+      }
+    });
+  </script>
+</body>
+</html>
+
