@@ -302,14 +302,11 @@ def get_html_path():
     if os.path.exists(candidate):
         return candidate
 
-    # Search common project paths
-    alt_paths = [
-        "/Users/apple/Documents/CSE PROJECT/DSA PROJECT/index.html",
-        "/Users/apple/Documents/DSA PROJECT/index.html",
-    ]
-    for p in alt_paths:
-        if os.path.exists(p):
-            return p
+    # Fallback to current working directory
+    cwd_candidate = os.path.join(os.getcwd(), 'index.html')
+    if os.path.exists(cwd_candidate):
+        return cwd_candidate
+
     return candidate
 
 
