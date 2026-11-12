@@ -310,7 +310,33 @@ def get_html_path():
     return candidate
 
 
+def set_macos_dock_icon():
+    """Sets the macOS Dock icon dynamically at runtime using Cocoa/AppKit."""
+    if sys.platform != 'darwin':
+        return
+    try:
+        from AppKit import NSApplication, NSImage
+        base_dir = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+        candidates = [
+            os.path.join(base_dir, 'Vision.icns'),
+            os.path.join(base_dir, 'assets', 'app_icon.png'),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Vision.icns'),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets', 'app_icon.png'),
+            os.path.join(os.getcwd(), 'Vision.icns'),
+            os.path.join(os.getcwd(), 'assets', 'app_icon.png'),
+        ]
+        for p in candidates:
+            if os.path.exists(p):
+                ns_img = NSImage.alloc().initWithContentsOfFile_(p)
+                if ns_img:
+                    NSApplication.sharedApplication().setApplicationIconImage_(ns_img)
+                    break
+    except Exception:
+        pass
+
+
 def main():
+    set_macos_dock_icon()
     bridge = VisionBridge()
     html_file = get_html_path()
 
@@ -325,6 +351,8 @@ def main():
         text_select=True,
         background_color='#FDFBF7'
     )
+    # Re-apply dock icon once webview initializes
+    set_macos_dock_icon()
     webview.start(debug=False)
 
 
